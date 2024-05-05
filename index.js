@@ -9,6 +9,18 @@ const bot = new TelegramBot(token, {polling: true});
 const app = express();
 
 
+const products = [
+    {id:'1', tittle: 'Оперативная память', price: 5000, description: 'Оперативная память 8 GB Kingston HX436C17PB4/8',  image: 'https://www.pcplanet.ru/public_files/products/c3/e2/c3e2cddb3e54f52d8cc788d6b576eda2/original.jpg'},
+    {id:'2', tittle: 'Куртка', price: 12000, description: 'Зеленого цвета, теплая'},
+    {id:'3', tittle: 'Джинсы 2', price: 5000, description: 'Синего цвета, прямые'},
+    {id:'4', tittle: 'Куртка 8', price: 10000, description: 'Зеленого цвета, тепла'},
+    {id:'5', tittle: 'Джинсы 3', price: 5000, description: 'Синего цвета, прямые'},
+    {id:'6', tittle: 'Куртка 7', price: 4000, description: 'Зеленого цвета, тепла'},
+    {id:'7', tittle: 'Джинсы 4', price: 5500, description: 'Синего цвета, прямые'},
+    {id:'8', tittle: 'Куртка 5', price: 13000, description: 'Зеленого цвета, тепла'},
+]
+
+
 app.use(express.json());
 app.use(cors());
 
@@ -16,9 +28,11 @@ app.use(cors());
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text;
+  console.log(msg);
+  
 
   if(text === '/start') {
-        await bot.sendMessage(chatId,'Ниже появится кнопка, заполни форуму', {
+        await bot.sendMessage(chatId,'Ниже появится кнопка, заполни форма', {
             reply_markup: {
                 keyboard: [
                     [{text: 'Заполнить форму', web_app: {url: webAppUrl +'/form'}}]
@@ -52,10 +66,16 @@ bot.on('message', async (msg) => {
 
 });
 
-app.post ('/web-data', async (req, res) =>{
+
+app.get ('/productlist', async (req,res) =>{
+    return res.status(200).json({products});
+})
+
+app.post('/web-data', async (req, res) =>{
+    console.log(123);
     const {queryId, products, totalPrice} =req.body;
     try {
-        await bot.answerWebAppQuery(queryId,{
+      await bot.answerWebAppQuery(queryId,{
             type: 'article',
             id: queryId,
             title: 'Успешная покупка',
@@ -76,3 +96,5 @@ app.post ('/web-data', async (req, res) =>{
 
 const PORT = 8000;
 app.listen(PORT, () => console.log('server started on PORT ' + PORT))
+
+
