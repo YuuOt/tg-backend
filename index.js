@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
-const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
+const webAppUrl = 'http://192.168.56.1:3000';
 
 const bot = new TelegramBot(token, {polling: true});
 const app = express();
