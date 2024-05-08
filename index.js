@@ -11,7 +11,7 @@ const app = express();
 const https = require('https');
 const fs = require('fs');
 
-const host = '127.0.0.1';
+const host = 'tg-bot-1.koala1101.ru';
 const port = 7000;
 
 
