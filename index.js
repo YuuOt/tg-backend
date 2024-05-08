@@ -12,7 +12,7 @@ const https = require('https');
 const fs = require('fs');
 
 const host = 'tg-bot-1.koala1101.ru';
-const port = 443;
+const port = 8080;
 
 
 const products = [
