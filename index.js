@@ -16,8 +16,8 @@ const options = {
     cert: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/fullchain.pem'),
 };
 
-const host = '5.35.12.3';
-const port = 7000;
+const host = 'tg-bot-1.koala1101.ru';
+const port = 443;
 
 
 const products = [
