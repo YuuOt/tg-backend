@@ -8,12 +8,6 @@ const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
 const bot = new TelegramBot(token, {polling: true});
 const app = express();
 
-const https = require('https');
-const fs = require('fs');
-
-const host = 'tg-bot-1.koala1101.ru';
-const port = 7000;
-
 
 const products = [
     {id:'1', tittle: 'Оперативная память', price: 5000, description: 'Оперативная память 8 GB Kingston HX436C17PB4/8',  image: 'https://www.pcplanet.ru/public_files/products/c3/e2/c3e2cddb3e54f52d8cc788d6b576eda2/original.jpg'},
@@ -99,17 +93,7 @@ app.post('/web-data', async (req, res) =>{
     }
 })
 
-https
-    .createServer(
-        {
-            key: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/privkey.pem'),
-            cert: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/fullchain.pem'),
-        },
-        app
-    )
-    .listen(port, host, function () {
-        console.log(
-            `Server listens https://${host}:${port}`
-        );
-    });
+
+const PORT = 8000;
+app.listen(PORT, () => console.log('server started on PORT ' + PORT))
 
