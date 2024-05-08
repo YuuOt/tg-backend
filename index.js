@@ -11,6 +11,11 @@ const app = express();
 const https = require('https');
 const fs = require('fs');
 
+const options = {
+    key: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/privkey.pem'),
+    cert: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/fullchain.pem'),
+};
+
 const host = '5.35.12.3';
 const port = 7000;
 
@@ -99,17 +104,11 @@ app.post('/web-data', async (req, res) =>{
     }
 })
 
-https
-    .createServer(
-        {
-            key: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/privkey.pem'),
-            cert: fs.readFileSync('/etc/letsencrypt/live/tg-bot-1.koala1101.ru/fullchain.pem'),
-        },
-        app
-    )
-    .listen(port, host, function () {
-        console.log(
-            `Server listens https://${host}:${port}`
-        );
-    });
+const server = https.createServer(options, app);
+
+server.listen(port, host, function () {
+    console.log(
+        `Server listens https://${host}:${port}`
+    );
+});
 
