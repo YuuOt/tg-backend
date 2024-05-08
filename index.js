@@ -10,14 +10,14 @@ const app = express();
 
 
 const products = [
-    {id:'1', tittle: 'Оперативная память', price: 5000, description: 'Оперативная память 8 GB Kingston HX436C17PB4/8',  image: 'https://www.pcplanet.ru/public_files/products/c3/e2/c3e2cddb3e54f52d8cc788d6b576eda2/original.jpg'},
-    {id:'2', tittle: 'Куртка', price: 12000, description: 'Зеленого цвета, теплая'},
-    {id:'3', tittle: 'Джинсы 2', price: 5000, description: 'Синего цвета, прямые'},
-    {id:'4', tittle: 'Куртка 8', price: 10000, description: 'Зеленого цвета, тепла'},
-    {id:'5', tittle: 'Джинсы 3', price: 5000, description: 'Синего цвета, прямые'},
-    {id:'6', tittle: 'Куртка 7', price: 4000, description: 'Зеленого цвета, тепла'},
-    {id:'7', tittle: 'Джинсы 4', price: 5500, description: 'Синего цвета, прямые'},
-    {id:'8', tittle: 'Куртка 5', price: 13000, description: 'Зеленого цвета, тепла'},
+    {id:'1', tittle: 'Оперативная память', price: 17000, description: 'Оперативная память 8 GB Kingston HX436C17PB4/8',  image: 'https://www.pcplanet.ru/public_files/products/c3/e2/c3e2cddb3e54f52d8cc788d6b576eda2/original.jpg'},
+    {id:'2', tittle: 'Системный блок', price: 12000, description: 'Корпус (системный блок) Thermaltake View 71 Tempered Glass Edition',  image: 'https://w2g.ru/wp-content/uploads/2020/06/1304177.jpg'},
+    {id:'3', tittle: 'Процессор', price: 25000, description: 'Процессор Intel Core i9 7900X-(3.3 GHz) сокет 2066 L3 кэш 13.75 MB',  image: 'https://www.pcplanet.ru/public_files/products/4f/ac/4fac845da748c4fdacee909dfdf3f2e5/original.jpg'},
+    {id:'4', tittle: 'Видеокарта', price: 75000, description: 'Видеокарта ASUS ROG-STRIX-RTX3070TI-O8G-GAMING RTX3070TI 8GB GDDR6X 256bit 2xHDMI 3xDP RTL',  image: 'https://torg-pc.ru/upload/iblock/db2/0g5ulsbmk8yzerhoevkurnd8vvk0slm6/orig%20-%202021-11-12T122859.678.jpg'},
+    {id:'5', tittle: 'Материнская плата', price: 30000, description: 'Материнская плата ASUS CROSSHAIR VI HERO (AM4, ATX)',  image: 'https://digitik.ru/upload/iblock/3d4/3d4075c3578902669d05546458abd0c1.jpg'},
+    {id:'6', tittle: 'ssd m2', price: 13000, description: 'Накопитель SSD M2 1Tb Samsung 970 EVO Plus MZ-V7S1T0BW',  image: 'https://pc4you.ru/upload/iblock/0a7/0a7ac986bc390664ecca59dd1c11603c.jpg'},
+    {id:'7', tittle: 'Водяная система охлаждения', price: 17500, description: 'Система водяного охлаждения ASUS ROG STRIX LC 360',  image: 'https://digitik.ru/upload/iblock/2d2/2d2ef671c557c376d72ec5b1aea2529d.png'},
+    {id:'8', tittle: 'Блок питание', price: 13000, description: 'Блок питания thermaltake litepower 550w <550w, (20+4+4+4) pin, 2x(6+2) pin, 5xsata, 4xmolex, fdd, 12',  image: 'https://officeneeds.ru/upload/iblock/d35/d350b3230e9492d445412eb56818abb4.jpg'},
 ]
 
 
