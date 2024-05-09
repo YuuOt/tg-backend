@@ -86,7 +86,7 @@ bot.onText(/\/search/, async (msg) => {
   
     try {
       const products = await getProductsFromFirestore();
-      const foundProducts = products.filter(product => product.title.toLowerCase().includes(searchQuery.toLowerCase()));
+      const foundProducts = products.filter(product => product.title && product.title.toLowerCase().includes(searchQuery.toLowerCase()));
   
       if (foundProducts.length === 0) {
         bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
