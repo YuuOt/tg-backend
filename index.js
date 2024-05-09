@@ -75,6 +75,26 @@ bot.on('message', async (msg) => {
 
 });
 
+bot.onText(/\/search (.+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+    const searchQuery = match[1];
+  
+    try {
+      const products = await getProductsFromFirestore();
+      const foundProducts = products.filter(product => product.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  
+      if (foundProducts.length === 0) {
+        bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
+      } else {
+        const productTitles = foundProducts.map(product => product.title).join('\n');
+        bot.sendMessage(chatId, `Найденные товары:\n${productTitles}`);
+      }
+    } catch (error) {
+      console.error('Error searching for products:', error);
+      bot.sendMessage(chatId, 'Произошла ошибка при поиске товаров.');
+    }
+  });
+
 app.get('/productlist', async (req, res) => {
   try {
     const products = await getProductsFromFirestore();
