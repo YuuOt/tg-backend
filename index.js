@@ -101,7 +101,7 @@ bot.onText(/\/search/, async (msg) => {
         const productInfo = foundProducts.map(product => {
           return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
         }).join('\n\n');
-        bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
+        await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
         await bot.sendMessage(chatId,'Заказать найденный товар можно по кнопке ниже', {
             reply_markup: {
                 inline_keyboard: [
