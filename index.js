@@ -75,9 +75,9 @@ bot.on('message', async (msg) => {
 
 });
 
-bot.onText(/\/search (.+)/, async (msg, match) => {
+bot.onText(/\/search/, async (msg) => {
     const chatId = msg.chat.id;
-    const searchQuery = match[1];
+    const searchQuery = msg.text.split(' ')[1];
   
     if (!searchQuery) {
       bot.sendMessage(chatId, 'Пожалуйста, укажите ключевое слово для поиска.');
