@@ -98,8 +98,10 @@ bot.onText(/\/search/, async (msg) => {
       if (foundProducts.length === 0) {
         bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
       } else {
-        const productTitles = foundProducts.map(product => product.title).join('\n');
-        bot.sendMessage(chatId, `Найденные товары:\n${productTitles}`);
+        const productInfo = foundProducts.map(product => {
+          return `ID: ${product.id}\nTitle: ${product.title}\nDescription: ${product.description}\nPrice: ${product.price}`;
+        }).join('\n\n');
+        bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
       }
     } catch (error) {
       console.error('Error searching for products:', error);
