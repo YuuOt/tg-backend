@@ -79,6 +79,11 @@ bot.onText(/\/search (.+)/, async (msg, match) => {
     const chatId = msg.chat.id;
     const searchQuery = match[1];
   
+    if (!searchQuery) {
+      bot.sendMessage(chatId, 'Пожалуйста, укажите ключевое слово для поиска.');
+      return;
+    }
+  
     try {
       const products = await getProductsFromFirestore();
       const foundProducts = products.filter(product => product.title.toLowerCase().includes(searchQuery.toLowerCase()));
