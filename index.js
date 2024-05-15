@@ -253,7 +253,7 @@ bot.on('message', async (msg) => {
       const productsInfo = order.products.map((product, index) => {
         return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
       }).join('\n\n');
-      const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+      const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
       await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
     } catch (error) {
       console.error('Error getting order info:', error);
@@ -330,6 +330,24 @@ app.post('/web-data', async (req, res) => {
 
     // Возвращаем ошибку
     res.status(500).json({ error: 'Failed to process order' });
+  }
+});
+
+// Обработчик формы
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+
+  if (msg?.web_app_data?.data) {
+    try {
+      const data = JSON.parse(msg?.web_app_data?.data);
+      const { country, street, subject } = data;
+
+      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
+      await bot.sendMessage(chatId, `Ваша страна: ${country}\nПочта: ${street}\nТип лица: ${subject}`);
+    } catch (e) {
+      console.error('Error processing form data:', e);
+      await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
+    }
   }
 });
 
