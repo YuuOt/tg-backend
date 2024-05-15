@@ -127,12 +127,13 @@ bot.onText(/\/search/, async (msg) => {
 });
 
 // Обработчик команды /infoorder
-bot.onText(/\/infoorder (.+)/, async (msg, match) => {
+bot.onText(/\/infoorder/, async (msg) => {
   const chatId = msg.chat.id;
-  const orderId = match[1].trim();
+  const orderId = msg.text.split(' ')[1];
 
   if (!orderId) {
     bot.sendMessage(chatId, 'Пожалуйста, укажите ID заказа.');
+    chatState[chatId] = 'waiting_for_order_id';
     return;
   }
 
@@ -173,9 +174,9 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
       } else {
         const productInfo = foundProducts.map(product => {
-          return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
-        }).join('\n\n');
-        await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
+          return `Название: ${product.tittle}\nОписание: ${product.description}\нЦена: ${product.price}`;
+        }).join('\н\n');
+        await bot.sendMessage(chatId, `Найденные товары:\н${productInfo}`);
         await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
           reply_markup: {
             inline_keyboard: [
@@ -188,9 +189,24 @@ bot.on('message', async (msg) => {
       console.error('Error searching for products:', error);
       bot.sendMessage(chatId, 'Произошла ошибка при поиске товаров.');
     }
+  } else if (chatState[chatId] === 'waiting_for_order_id') {
+    chatState[chatId] = null; // Сбрасываем состояние
+
+    try {
+      const orderId = text;
+      const order = await getOrderFromFirestore(orderId);
+      const productsInfo = order.products.map((product, index) => {
+        return `Товар ${index + 1}:\нНазвание: ${product.title}\нОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
+      }).join('\н\n');
+      const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+      await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
+    } catch (error) {
+      console.error('Error getting order info:', error);
+      bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
+    }
   } else if (!text.startsWith('/') && !msg?.web_app_data?.data) {
     // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
-    bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
+    bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\н' +
       '/start - Начать взаимодействие\n' +
       '/search "название товара" - Поиск товара\n' +
       '/infoorder "ID заказа" - Информация по заказу');
