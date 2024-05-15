@@ -10,6 +10,7 @@ const serviceAccount = require('./serviceAccountKey.json');
 const bot = new TelegramBot(token, { polling: true });
 const app = express();
 
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -137,7 +138,10 @@ bot.onText(/\/infoorder (.+)/, async (msg, match) => {
 
   try {
     const order = await getOrderFromFirestore(orderId);
-    const orderInfo = `ID заказа: ${orderId}\nТовары: ${order.products}\nОбщая стоимость: ${order.totalPrice}`;
+    const productsInfo = order.products.map((product, index) => {
+      return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
+    }).join('\n\n');
+    const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
     await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
   } catch (error) {
     console.error('Error getting order info:', error);
