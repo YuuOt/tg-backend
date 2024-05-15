@@ -122,10 +122,10 @@ const chatState = {}; // Объект для хранения состояний
 // Обработчик команды /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  await bot.sendMessage(chatId, 'Ниже появится кнопка, чтобы заполнить форму', {
+  await bot.sendMessage(chatId, 'Ниже появится кнопка, чтобы заполнить форму для отправки заказа ', {
     reply_markup: {
       keyboard: [
-        [{ text: 'Заполнить форму', web_app: { url: webAppUrl + '/form' } }]
+        [{ text: 'Заполнить форму для отправки заказа', web_app: { url: webAppUrl + '/form' } }]
       ]
     }
   });
