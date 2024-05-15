@@ -11,6 +11,7 @@ const bot = new TelegramBot(token, { polling: true });
 const app = express();
 
 
+
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -62,7 +63,7 @@ const getUserOrdersFromFirestore = async (userId) => {
   try {
     const snapshot = await db.collection('orders').where('userId', '==', userId).get();
     if (snapshot.empty) {
-      throw new Error('No orders found');
+      return [];
     }
     const orders = [];
     snapshot.forEach(doc => {
@@ -128,9 +129,9 @@ bot.onText(/\/search/, async (msg) => {
       bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
     } else {
       const productInfo = foundProducts.map(product => {
-        return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
-      }).join('\n\n');
-      await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
+        return `Название: ${product.tittle}\nОписание: ${product.description}\нЦена: ${product.price}`;
+      }).join('\н\n');
+      await bot.sendMessage(chatId, `Найденные товары:\н${productInfo}`);
       await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
         reply_markup: {
           inline_keyboard: [
@@ -159,10 +160,10 @@ bot.onText(/\/infoorder/, async (msg) => {
   try {
     const order = await getOrderFromFirestore(orderId);
     const productsInfo = order.products.map((product, index) => {
-      return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
-    }).join('\n\n');
-    const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
-    await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+      return `Товар ${index + 1}:\nНазвание: ${product.title}\нОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
+    }).join('\н\n');
+    const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+    await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
   } catch (error) {
     console.error('Error getting order info:', error);
     bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
@@ -181,11 +182,11 @@ bot.onText(/\/myorders/, async (msg) => {
     } else {
       const ordersInfo = orders.map(order => {
         const productsInfo = order.products.map((product, index) => {
-          return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
-        }).join('\n\n');
-        return `ID заказа: ${order.id}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
-      }).join('\n\n====================\n\n');
-      await bot.sendMessage(chatId, `Ваши заказы:\n\n${ordersInfo}`);
+          return `Товар ${index + 1}:\нНазвание: ${product.title}\нОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
+        }).join('\н\n');
+        return `ID заказа: ${order.id}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+      }).join('\н\n====================\н\n');
+      await bot.sendMessage(chatId, `Ваши заказы:\н\n${ordersInfo}`);
     }
   } catch (error) {
     console.error('Error getting user orders:', error);
@@ -217,7 +218,7 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
       } else {
         const productInfo = foundProducts.map(product => {
-          return `Название: ${product.tittle}\nОписание: ${product.description}\нЦена: ${product.price}`;
+          return `Название: ${product.tittle}\нОписание: ${product.description}\нЦена: ${product.price}`;
         }).join('\н\n');
         await bot.sendMessage(chatId, `Найденные товары:\н${productInfo}`);
         await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
