@@ -219,66 +219,98 @@ bot.onText(/\/myorders/, async (msg) => {
 // Обработчик всех остальных сообщений
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
+
+  if (msg?.web_app_data?.data) {
+    try {
+      const data = JSON.parse(msg.web_app_data.data);
+      const { country, city, street, postalCode, email } = data;
+
+      // Отправка подтверждения по электронной почте
+      const mailOptions = {
+        from: 'your-email@yandex.ru',
+        to: email,
+        subject: 'Подтверждение заказа',
+        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          bot.sendMessage(chatId, 'Произошла ошибка при отправке подтверждения на электронную почту.');
+        } else {
+          console.log('Email sent:', info.response);
+          bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
+        }
+      });
+    } catch (e) {
+      console.error('Error processing form data:', e);
+      await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
+    }
+    return; // Завершаем обработку, так как это данные формы
+  }
+
   const text = msg.text;
 
-  // Если бот ожидает поисковый запрос от пользователя
-  if (chatState[chatId] === 'waiting_for_search_query') {
-    chatState[chatId] = null; // Сбрасываем состояние
+  if (text) {
+    if (chatState[chatId] === 'waiting_for_search_query') {
+      chatState[chatId] = null; // Сбрасываем состояние
 
-    try {
-      const products = await getProductsFromFirestore();
-      const foundProducts = products.filter(product => {
-        return Object.values(product).some(value => {
-          if (typeof value === 'string') {
-            return value.toLowerCase().includes(text.toLowerCase());
-          }
-          return false;
+      try {
+        const products = await getProductsFromFirestore();
+        const foundProducts = products.filter(product => {
+          return Object.values(product).some(value => {
+            if (typeof value === 'string') {
+              return value.toLowerCase().includes(text.toLowerCase());
+            }
+            return false;
+          });
         });
-      });
 
-      if (foundProducts.length === 0) {
-        bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
-      } else {
-        const productInfo = foundProducts.map(product => {
-          return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
-        }).join('\n\n');
-        await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
-        await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
-          reply_markup: {
-            inline_keyboard: [
-              [{ text: 'Сделать заказ', web_app: { url: webAppUrl } }]
-            ]
-          }
-        });
+        if (foundProducts.length === 0) {
+          bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
+        } else {
+          const productInfo = foundProducts.map(product => {
+            return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
+          }).join('\n\n');
+          await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
+          await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
+            reply_markup: {
+              inline_keyboard: [
+                [{ text: 'Сделать заказ', web_app: { url: webAppUrl } }]
+              ]
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error searching for products:', error);
+        bot.sendMessage(chatId, 'Произошла ошибка при поиске товаров.');
       }
-    } catch (error) {
-      console.error('Error searching for products:', error);
-      bot.sendMessage(chatId, 'Произошла ошибка при поиске товаров.');
-    }
-  } else if (chatState[chatId] === 'waiting_for_order_id') {
-    chatState[chatId] = null; // Сбрасываем состояние
+    } else if (chatState[chatId] === 'waiting_for_order_id') {
+      chatState[chatId] = null; // Сбрасываем состояние
 
-    try {
-      const orderId = text;
-      console.log(`Fetching order with ID: ${orderId}`);
-      const order = await getOrderFromFirestore(orderId);
-      const productsInfo = order.products.map((product, index) => {
-        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
-      }).join('\n\n');
-      const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
-      await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
-    } catch (error) {
-      console.error('Error getting order info:', error);
-      bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
+      try {
+        const orderId = text;
+        console.log(`Fetching order with ID: ${orderId}`);
+        const order = await getOrderFromFirestore(orderId);
+        const productsInfo = order.products.map((product, index) => {
+          return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
+        }).join('\n\n');
+        const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
+        await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+      } catch (error) {
+        console.error('Error getting order info:', error);
+        bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
+      }
+    } else if (!text.startsWith('/')) {
+      // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
+      bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
+        '/start - Начать взаимодействие\n' +
+        '/search "название товара" - Поиск товара\n' +
+        '/infoorder "ID заказа" - Информация по заказу\n' +
+        '/myorders - Просмотр ваших заказов');
     }
-  } else if (!text.startsWith('/') && !msg?.web_app_data?.data) {
-    // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
-    bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
-      '/start - Начать взаимодействие\n' +
-      '/search "название товара" - Поиск товара\n' +
-      '/infoorder "ID заказа" - Информация по заказу\n' +
-      '/myorders - Просмотр ваших заказов');
   }
+
 
   if (msg?.web_app_data?.data) {
     try {
