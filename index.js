@@ -41,15 +41,15 @@ bot.on('message', async (msg) => {
   
 
   if(text === '/start') {
-        await bot.sendMessage(chatId,'Ниже появится кнопка, заполни форма', {
+        await bot.sendMessage(chatId,'Ниже появится кнопка, заполнить форму', {
             reply_markup: {
                 keyboard: [
                     [{text: 'Заполнить форму', web_app: {url: webAppUrl +'/form'}}]
                 ]
             }
         })
-
-        await bot.sendMessage(chatId,'Заходи в наш интернет магазин по кнопке ниже', {
+        await bot.sendMessage(chatId,'Команда для поиска товара: /search "название товара"')
+        await bot.sendMessage(chatId,'Заходите в наш интернет магазин по кнопке ниже', {
             reply_markup: {
                 inline_keyboard: [
                     [{text: 'Сделать заказ', web_app: {url: webAppUrl}}]
@@ -66,7 +66,7 @@ bot.on('message', async (msg) => {
 
             await bot.sendMessage(chatId,'Спасибо за обратную связь!')
             await bot.sendMessage(chatId,'Ваша страна'+ data?.country);
-            await bot.sendMessage(chatId,'Ваша улица'+ data?.street)
+            await bot.sendMessage(chatId,'Почта'+ data?.street)
         } catch (e) {
             console.log(e);
         }
