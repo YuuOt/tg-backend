@@ -351,12 +351,12 @@ bot.on('message', async (msg) => {
 
   if (msg?.web_app_data?.data) {
     try {
-      const data = JSON.parse(msg?.web_app_data?.data);
-      const { country, city, street, postalCode, email } = data;
+      const data = JSON.parse(msg.web_app_data.data);
+      const { country, city, street, postalCode, email, text } = data;
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'vkrbot@yandex.ru', 
+        from: 'your-email@yandex.ru', // Замените на вашу почту
         to: email,
         subject: 'Подтверждение заказа',
         text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
@@ -371,10 +371,14 @@ bot.on('message', async (msg) => {
           bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
         }
       });
+
+      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
+      await bot.sendMessage(chatId, text);
     } catch (e) {
       console.error('Error processing form data:', e);
       await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
     }
+    return; // Завершаем обработку, так как это данные формы
   }
 });
 
