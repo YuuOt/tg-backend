@@ -10,8 +10,6 @@ const serviceAccount = require('./serviceAccountKey.json');
 const bot = new TelegramBot(token, { polling: true });
 const app = express();
 
-
-
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
@@ -75,6 +73,20 @@ const getUserOrdersFromFirestore = async (userId) => {
     console.error('Error getting user orders from Firestore:', error);
     throw error;
   }
+};
+
+// Форматирование даты и времени
+const formatDate = (date) => {
+  const dateObj = new Date(date);
+  dateObj.setHours(dateObj.getHours() + 4);
+  return dateObj.toLocaleString('ru-RU', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: undefined,
+  }).replace(',', '');
 };
 
 app.use(express.json());
@@ -182,7 +194,7 @@ bot.onText(/\/myorders/, async (msg) => {
       bot.sendMessage(chatId, 'У вас нет заказов.');
     } else {
       const ordersInfo = orders.map(order => {
-        return `ID заказа: ${order.id}\nДата заказа: ${order.createdAt}`;
+        return `ID заказа: ${order.id}\nДата заказа: ${formatDate(order.createdAt)}`;
       }).join('\n\n');
       await bot.sendMessage(chatId, `Ваши заказы:\n\n${ordersInfo}`);
     }
@@ -216,9 +228,9 @@ bot.on('message', async (msg) => {
         bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
       } else {
         const productInfo = foundProducts.map(product => {
-          return `Название: ${product.tittle}\nОписание: ${product.description}\нЦена: ${product.price}`;
+          return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
         }).join('\n\n');
-        await bot.sendMessage(chatId, `Найденные товары:\н${productInfo}`);
+        await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
         await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
           reply_markup: {
             inline_keyboard: [
@@ -239,7 +251,7 @@ bot.on('message', async (msg) => {
       console.log(`Fetching order with ID: ${orderId}`);
       const order = await getOrderFromFirestore(orderId);
       const productsInfo = order.products.map((product, index) => {
-        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
+        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
       }).join('\n\n');
       const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
       await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
@@ -249,7 +261,7 @@ bot.on('message', async (msg) => {
     }
   } else if (!text.startsWith('/') && !msg?.web_app_data?.data) {
     // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
-    bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\н' +
+    bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
       '/start - Начать взаимодействие\n' +
       '/search "название товара" - Поиск товара\n' +
       '/infoorder "ID заказа" - Информация по заказу\n' +
