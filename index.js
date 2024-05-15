@@ -14,6 +14,10 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
 });
 
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
 const db = admin.firestore();
 
 // Получение списка продуктов из Firestore
@@ -191,24 +195,45 @@ bot.on('message', async (msg) => {
       '/search "название товара" - Поиск товара\n' +
       '/infoorder "ID заказа" - Информация по заказу');
   }
+});
 
-  if (msg?.web_app_data?.data) {
-    try {
-      const data = JSON.parse(msg?.web_app_data?.data);
+// Обработчик маршрута /web-data для получения данных из веб-приложения и сохранения заказа
+app.post('/web-data', async (req, res) => {
+  const { queryId, products, totalPrice, tg } = req.body;
 
-      const order = {
-        products: data.products,
-        totalPrice: data.totalPrice,
-        tg: data.tg
-      };
+  try {
+    // Сохранение заказа в Firestore
+    const order = {
+      products,
+      totalPrice,
+      tg,
+      createdAt: new Date().toISOString()
+    };
+    const orderId = await saveOrderToFirestore(order);
 
-      const orderId = await saveOrderToFirestore(order);
+    // Отправка ответа в Telegram
+    await bot.answerWebAppQuery(queryId, {
+      type: 'article',
+      id: queryId,
+      title: 'Успешная покупка',
+      input_message_content: { message_text: `Вы оформили заказ. ID заказа: ${orderId}` }
+    });
 
-      await bot.sendMessage(chatId, 'Спасибо за заказ!');
-      await bot.sendMessage(chatId, `Ваш заказ оформлен. ID заказа: ${orderId}`);
-    } catch (e) {
-      console.log(e);
-    }
+    // Возвращаем успешный ответ
+    res.status(200).json({ orderId });
+  } catch (error) {
+    console.error('Error processing order:', error);
+
+    // Отправка ошибки в Telegram
+    await bot.answerWebAppQuery(queryId, {
+      type: 'article',
+      id: queryId,
+      title: 'Не удалось приобрести товар',
+      input_message_content: { message_text: 'Не удалось приобрести товар' }
+    });
+
+    // Возвращаем ошибку
+    res.status(500).json({ error: 'Failed to process order' });
   }
 });
 
@@ -218,27 +243,6 @@ app.get('/productlist', async (req, res) => {
     return res.status(200).json({ products });
   } catch (error) {
     return res.status(500).json({ error: 'Failed to get products' });
-  }
-});
-
-app.post('/web-data', async (req, res) => {
-  const { queryId, products, totalPrice, tg } = req.body;
-  try {
-    await bot.answerWebAppQuery(queryId, {
-      type: 'article',
-      id: queryId,
-      title: 'Успешная покупка',
-      input_message_content: { message_text: 'Вы оформили заказ, ' + tg.MainButton.text }
-    });
-    return res.status(200).json({});
-  } catch (e) {
-    await bot.answerWebAppQuery(queryId, {
-      type: 'article',
-      id: queryId,
-      title: 'Не удалось приобрести товар',
-      input_message_content: { message_text: 'Не удалось приобрести товар' }
-    });
-    return res.status(500).json({});
   }
 });
 
