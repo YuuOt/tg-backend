@@ -3,8 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
-const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
-const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
+const token = 'YOUR_TELEGRAM_BOT_TOKEN';
+const webAppUrl = 'YOUR_WEB_APP_URL';
 const serviceAccount = require('./serviceAccountKey.json');
 
 const bot = new TelegramBot(token, { polling: true });
@@ -31,6 +31,31 @@ const getProductsFromFirestore = async () => {
   }
 };
 
+// Сохранение заказа в Firestore
+const saveOrderToFirestore = async (order) => {
+  try {
+    const orderRef = await db.collection('orders').add(order);
+    return orderRef.id;
+  } catch (error) {
+    console.error('Error saving order to Firestore:', error);
+    throw error;
+  }
+};
+
+// Получение информации о заказе из Firestore
+const getOrderFromFirestore = async (orderId) => {
+  try {
+    const orderDoc = await db.collection('orders').doc(orderId).get();
+    if (!orderDoc.exists) {
+      throw new Error('Order not found');
+    }
+    return orderDoc.data();
+  } catch (error) {
+    console.error('Error getting order from Firestore:', error);
+    throw error;
+  }
+};
+
 app.use(express.json());
 app.use(cors());
 
@@ -47,6 +72,7 @@ bot.onText(/\/start/, async (msg) => {
     }
   });
   await bot.sendMessage(chatId, 'Команда для поиска товара: /search "название товара"');
+  await bot.sendMessage(chatId, 'Команда для получения информации о заказе: /infoorder "ID заказа"');
   await bot.sendMessage(chatId, 'Заходите в наш интернет магазин по кнопке ниже', {
     reply_markup: {
       inline_keyboard: [
@@ -99,6 +125,26 @@ bot.onText(/\/search/, async (msg) => {
   }
 });
 
+// Обработчик команды /infoorder
+bot.onText(/\/infoorder (.+)/, async (msg, match) => {
+  const chatId = msg.chat.id;
+  const orderId = match[1].trim();
+
+  if (!orderId) {
+    bot.sendMessage(chatId, 'Пожалуйста, укажите ID заказа.');
+    return;
+  }
+
+  try {
+    const order = await getOrderFromFirestore(orderId);
+    const orderInfo = `ID заказа: ${orderId}\nТовары: ${order.products}\nОбщая стоимость: ${order.totalPrice}`;
+    await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+  } catch (error) {
+    console.error('Error getting order info:', error);
+    bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
+  }
+});
+
 // Обработчик всех остальных сообщений
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
@@ -138,20 +184,28 @@ bot.on('message', async (msg) => {
       console.error('Error searching for products:', error);
       bot.sendMessage(chatId, 'Произошла ошибка при поиске товаров.');
     }
-  } else if (!text.startsWith('/')) {
-    // Если сообщение не является командой, отправляем список команд
+  } else if (!text.startsWith('/') && !msg?.web_app_data?.data) {
+    // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
     bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
       '/start - Начать взаимодействие\n' +
-      '/search "название товара" - Поиск товара');
+      '/search "название товара" - Поиск товара\n' +
+      '/infoorder "ID заказа" - Информация по заказу');
   }
 
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg?.web_app_data?.data);
 
-      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
-      await bot.sendMessage(chatId, 'Ваша страна: ' + data?.country);
-      await bot.sendMessage(chatId, 'Почта: ' + data?.street);
+      const order = {
+        products: data.products,
+        totalPrice: data.totalPrice,
+        tg: data.tg
+      };
+
+      const orderId = await saveOrderToFirestore(order);
+
+      await bot.sendMessage(chatId, 'Спасибо за заказ!');
+      await bot.sendMessage(chatId, `Ваш заказ оформлен. ID заказа: ${orderId}`);
     } catch (e) {
       console.log(e);
     }
