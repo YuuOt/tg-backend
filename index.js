@@ -3,8 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
-const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
-const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
+const token = 'YOUR_TELEGRAM_BOT_TOKEN';
+const webAppUrl = 'YOUR_WEB_APP_URL';
 const serviceAccount = require('./serviceAccountKey.json');
 
 const bot = new TelegramBot(token, { polling: true });
@@ -138,8 +138,8 @@ bot.on('message', async (msg) => {
       console.error('Error searching for products:', error);
       bot.sendMessage(chatId, 'Произошла ошибка при поиске товаров.');
     }
-  } else if (!text.startsWith('/')) {
-    // Если сообщение не является командой, отправляем список команд
+  } else if (!text.startsWith('/') && !msg?.web_app_data?.data) {
+    // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
     bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
       '/start - Начать взаимодействие\n' +
       '/search "название товара" - Поиск товара');
