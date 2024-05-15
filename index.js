@@ -2,6 +2,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
+const nodemailer = require('nodemailer');
 
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
 const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
@@ -15,6 +16,14 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
+
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'zloypchel6@gmail.com', 
+    pass: 'Danay160398',  
+  },
+});
 
 
 // Получение списка продуктов из Firestore
@@ -341,10 +350,25 @@ bot.on('message', async (msg) => {
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg?.web_app_data?.data);
-      const { country, street, subject } = data;
+      const { country, city, street, postalCode, email } = data;
 
-      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
-      await bot.sendMessage(chatId, `Ваша страна: ${country}\nПочта: ${street}\nТип лица: ${subject}`);
+      // Отправка подтверждения по электронной почте
+      const mailOptions = {
+        from: 'zloypchel6@gmail.com', 
+        to: email,
+        subject: 'Подтверждение заказа',
+        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          bot.sendMessage(chatId, 'Произошла ошибка при отправке подтверждения на электронную почту.');
+        } else {
+          console.log('Email sent:', info.response);
+          bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
+        }
+      });
     } catch (e) {
       console.error('Error processing form data:', e);
       await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
