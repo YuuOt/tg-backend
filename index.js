@@ -222,7 +222,7 @@ bot.on('message', async (msg) => {
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg.web_app_data.data);
-      const { country, city, street, postalCode, email, text } = data;
+      const { country, city, street, postalCode, email } = data;
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
