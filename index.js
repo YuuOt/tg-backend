@@ -285,7 +285,7 @@ app.post('/web-data', async (req, res) => {
   const { queryId, products, totalPrice, tg } = req.body;
 
   try {
-    const userId = tg.user.id;
+    const userId = tg.initDataUnsafe.user.id;
 
     const order = {
       products,
