@@ -17,16 +17,15 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-
-let transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
   pool: true,
   host: "smtp.yandex.ru", 
   port: 465, 
   auth: {
-      user: "vkrbot@yandex.ru", 
-      pass: "rcplngehzvvifxjx"
+    user: "vkrbot@yandex.ru", 
+    pass: "rcplngehzvvifxjx"
   }
-})
+});
 
 // Получение списка продуктов из Firestore
 const getProductsFromFirestore = async () => {
@@ -216,18 +215,18 @@ bot.onText(/\/myorders/, async (msg) => {
   }
 });
 
-// Обработчик всех остальных сообщений
+// Обработчик формы и всех остальных сообщений
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
 
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg.web_app_data.data);
-      const { country, city, street, postalCode, email } = data;
+      const { country, city, street, postalCode, email, text } = data;
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'vkrbot@yandex.ru',
+        from: 'vkrbot@yandex.ru', 
         to: email,
         subject: 'Подтверждение заказа',
         text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
@@ -242,6 +241,9 @@ bot.on('message', async (msg) => {
           bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
         }
       });
+
+      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
+      await bot.sendMessage(chatId, text);
     } catch (e) {
       console.error('Error processing form data:', e);
       await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
@@ -310,29 +312,6 @@ bot.on('message', async (msg) => {
         '/myorders - Просмотр ваших заказов');
     }
   }
-
-
-  if (msg?.web_app_data?.data) {
-    try {
-      const data = JSON.parse(msg?.web_app_data?.data);
-      const userId = data.user.id;
-
-      const order = {
-        products: data.products,
-        totalPrice: data.totalPrice,
-        tg: data.tg,
-        userId: userId, // Привязываем заказ к пользователю Telegram
-        createdAt: new Date().toISOString()
-      };
-
-      const orderId = await saveOrderToFirestore(order);
-
-      await bot.sendMessage(chatId, 'Спасибо за заказ!');
-      await bot.sendMessage(chatId, `Ваш заказ оформлен. ID заказа: ${orderId}`);
-    } catch (e) {
-      console.log(e);
-    }
-  }
 });
 
 // Обработчик маршрута /web-data для получения данных из веб-приложения и сохранения заказа
@@ -374,43 +353,6 @@ app.post('/web-data', async (req, res) => {
 
     // Возвращаем ошибку
     res.status(500).json({ error: 'Failed to process order' });
-  }
-});
-
-// Обработчик формы
-bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
-
-  if (msg?.web_app_data?.data) {
-    try {
-      const data = JSON.parse(msg.web_app_data.data);
-      const { country, city, street, postalCode, email, text } = data;
-
-      // Отправка подтверждения по электронной почте
-      const mailOptions = {
-        from: 'vkrbot@yandex.ru', 
-        to: email,
-        subject: 'Подтверждение заказа',
-        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
-      };
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email:', error);
-          bot.sendMessage(chatId, 'Произошла ошибка при отправке подтверждения на электронную почту.');
-        } else {
-          console.log('Email sent:', info.response);
-          bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
-        }
-      });
-
-      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
-      await bot.sendMessage(chatId, text);
-    } catch (e) {
-      console.error('Error processing form data:', e);
-      await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
-    }
-    return; // Завершаем обработку, так как это данные формы
   }
 });
 
