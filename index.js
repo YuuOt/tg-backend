@@ -24,7 +24,7 @@ let transporter = nodemailer.createTransport({
   port: 465, 
   auth: {
       user: "vkrbot@yandex.ru", 
-      pass: "11223344d."
+      pass: "rcplngehzvvifxjx"
   }
 })
 
