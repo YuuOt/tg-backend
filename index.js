@@ -3,8 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 
-const token = 'YOUR_TELEGRAM_BOT_TOKEN';
-const webAppUrl = 'YOUR_WEB_APP_URL';
+const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
+const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
 const serviceAccount = require('./serviceAccountKey.json');
 
 const bot = new TelegramBot(token, { polling: true });
