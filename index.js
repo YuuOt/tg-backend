@@ -242,7 +242,6 @@ bot.on('message', async (msg) => {
         }
       });
 
-      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
       await bot.sendMessage(chatId, text);
     } catch (e) {
       console.error('Error processing form data:', e);
