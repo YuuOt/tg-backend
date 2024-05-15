@@ -2,7 +2,6 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
-const nodemailer = require('nodemailer');
 
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
 const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
@@ -17,13 +16,6 @@ admin.initializeApp({
 
 const db = admin.firestore();
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'zloypchel5@gmail.com', 
-    pass: 'Danay160398.',  
-  },
-});
 
 // Получение списка продуктов из Firestore
 const getProductsFromFirestore = async () => {
@@ -260,10 +252,10 @@ bot.on('message', async (msg) => {
       console.log(`Fetching order with ID: ${orderId}`);
       const order = await getOrderFromFirestore(orderId);
       const productsInfo = order.products.map((product, index) => {
-        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
+        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
       }).join('\n\n');
-      const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
-      await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+      const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+      await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
     } catch (error) {
       console.error('Error getting order info:', error);
       bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
@@ -280,28 +272,22 @@ bot.on('message', async (msg) => {
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg?.web_app_data?.data);
-      const { country, city, street, postalCode, email } = data;
+      const userId = data.user.id;
 
-      // Отправка подтверждения по электронной почте
-      const mailOptions = {
-        from: 'zloypchel5@gmail.com', 
-        to: email,
-        subject: 'Подтверждение заказа',
-        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
+      const order = {
+        products: data.products,
+        totalPrice: data.totalPrice,
+        tg: data.tg,
+        userId: userId, // Привязываем заказ к пользователю Telegram
+        createdAt: new Date().toISOString()
       };
 
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email:', error);
-          bot.sendMessage(chatId, 'Произошла ошибка при отправке подтверждения на электронную почту.');
-        } else {
-          console.log('Email sent:', info.response);
-          bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
-        }
-      });
+      const orderId = await saveOrderToFirestore(order);
+
+      await bot.sendMessage(chatId, 'Спасибо за заказ!');
+      await bot.sendMessage(chatId, `Ваш заказ оформлен. ID заказа: ${orderId}`);
     } catch (e) {
-      console.error('Error processing form data:', e);
-      await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
+      console.log(e);
     }
   }
 });
@@ -345,6 +331,24 @@ app.post('/web-data', async (req, res) => {
 
     // Возвращаем ошибку
     res.status(500).json({ error: 'Failed to process order' });
+  }
+});
+
+// Обработчик формы
+bot.on('message', async (msg) => {
+  const chatId = msg.chat.id;
+
+  if (msg?.web_app_data?.data) {
+    try {
+      const data = JSON.parse(msg?.web_app_data?.data);
+      const { country, street, subject } = data;
+
+      await bot.sendMessage(chatId, 'Спасибо за обратную связь!');
+      await bot.sendMessage(chatId, `Ваша страна: ${country}\nПочта: ${street}\nТип лица: ${subject}`);
+    } catch (e) {
+      console.error('Error processing form data:', e);
+      await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
+    }
   }
 });
 
