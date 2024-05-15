@@ -18,6 +18,14 @@ admin.initializeApp({
 const db = admin.firestore();
 
 
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'zloypchel6@gmail.com', 
+    pass: 'Danay160398',  
+  },
+});
+
 // Получение списка продуктов из Firestore
 const getProductsFromFirestore = async () => {
   try {
@@ -346,7 +354,7 @@ bot.on('message', async (msg) => {
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'zloypchel5@gmail.com', 
+        from: 'zloypchel6@gmail.com', 
         to: email,
         subject: 'Подтверждение заказа',
         text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
