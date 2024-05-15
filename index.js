@@ -2,7 +2,6 @@ const TelegramBot = require('node-telegram-bot-api');
 const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
-const nodemailer = require('nodemailer');
 
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
 const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
@@ -16,14 +15,6 @@ admin.initializeApp({
 });
 
 const db = admin.firestore();
-
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'zloypchel6@gmail.com', 
-    pass: 'Danay160398',  
-  },
-});
 
 
 // Получение списка продуктов из Firestore
@@ -354,7 +345,7 @@ bot.on('message', async (msg) => {
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'zloypchel6@gmail.com', 
+        from: 'zloypchel5@gmail.com', 
         to: email,
         subject: 'Подтверждение заказа',
         text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
