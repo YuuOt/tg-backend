@@ -356,7 +356,7 @@ bot.on('message', async (msg) => {
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'your-email@yandex.ru', // Замените на вашу почту
+        from: 'vkrbot@yandex.ru', 
         to: email,
         subject: 'Подтверждение заказа',
         text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
