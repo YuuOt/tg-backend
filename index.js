@@ -20,8 +20,8 @@ const db = admin.firestore();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'zloypchel5@gmail.com', 
-    pass: 'Danay160398',  
+    user: 'your-email@gmail.com', // Замените на вашу почту
+    pass: 'your-email-password',  // Замените на ваш пароль
   },
 });
 
@@ -260,10 +260,10 @@ bot.on('message', async (msg) => {
       console.log(`Fetching order with ID: ${orderId}`);
       const order = await getOrderFromFirestore(orderId);
       const productsInfo = order.products.map((product, index) => {
-        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
+        return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
       }).join('\n\n');
-      const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
-      await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
+      const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
+      await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
     } catch (error) {
       console.error('Error getting order info:', error);
       bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
@@ -280,22 +280,28 @@ bot.on('message', async (msg) => {
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg?.web_app_data?.data);
-      const userId = data.user.id;
+      const { country, city, street, postalCode, email } = data;
 
-      const order = {
-        products: data.products,
-        totalPrice: data.totalPrice,
-        tg: data.tg,
-        userId: userId, // Привязываем заказ к пользователю Telegram
-        createdAt: new Date().toISOString()
+      // Отправка подтверждения по электронной почте
+      const mailOptions = {
+        from: 'your-email@gmail.com', // Замените на вашу почту
+        to: email,
+        subject: 'Подтверждение заказа',
+        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
       };
 
-      const orderId = await saveOrderToFirestore(order);
-
-      await bot.sendMessage(chatId, 'Спасибо за заказ!');
-      await bot.sendMessage(chatId, `Ваш заказ оформлен. ID заказа: ${orderId}`);
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error('Error sending email:', error);
+          bot.sendMessage(chatId, 'Произошла ошибка при отправке подтверждения на электронную почту.');
+        } else {
+          console.log('Email sent:', info.response);
+          bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
+        }
+      });
     } catch (e) {
-      console.log(e);
+      console.error('Error processing form data:', e);
+      await bot.sendMessage(chatId, 'Произошла ошибка при обработке данных формы.');
     }
   }
 });
@@ -341,46 +347,6 @@ app.post('/web-data', async (req, res) => {
     res.status(500).json({ error: 'Failed to process order' });
   }
 });
-
-// Обработчик формы
-bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
-  const text = msg.text;
-
-  try {
-    if (msg?.web_app_data?.data) {
-      const data = JSON.parse(msg?.web_app_data?.data);
-      const { country, city, street, postalCode, email } = data;
-
-      // Отправка подтверждения по электронной почте
-      const mailOptions = {
-        from: 'your-email@gmail.com', // Замените на вашу почту
-        to: email,
-        subject: 'Подтверждение заказа',
-        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\нУлица: ${street}\нПочтовый индекс: ${postalCode}\нЭлектронная почта: ${email}`
-      };
-
-      transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-          console.error('Error sending email:', error);
-          bot.sendMessage(chatId, 'Произошла ошибка при отправке подтверждения на электронную почту.');
-        } else {
-          console.log('Email sent:', info.response);
-          bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
-        }
-      });
-    } else if (chatState[chatId] === 'waiting_for_search_query') {
-      chatState[chatId] = null; // Сбрасываем состояние
-
-      const products = await getProductsFromFirestore();
-      const foundProducts = products.filter(product => {
-        return Object.values(product).some(value => {
-          if (typeof value === 'string') {
-            return value.toLowerCase().includes(text.toLowerCase());
-          }
-          return false;
-        });
-      });
 
 app.get('/productlist', async (req, res) => {
   try {
