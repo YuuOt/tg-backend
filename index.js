@@ -20,8 +20,8 @@ const db = admin.firestore();
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: 'your-email@gmail.com', // Замените на вашу почту
-    pass: 'your-email-password',  // Замените на ваш пароль
+    user: 'zloypchel5@gmail.com', 
+    pass: 'Danay160398.',  
   },
 });
 
@@ -284,7 +284,7 @@ bot.on('message', async (msg) => {
 
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'your-email@gmail.com', // Замените на вашу почту
+        from: 'zloypchel5@gmail.com', 
         to: email,
         subject: 'Подтверждение заказа',
         text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
