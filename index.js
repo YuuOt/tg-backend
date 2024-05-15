@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const path = require('path');
 
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
 const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
@@ -26,6 +28,18 @@ const transporter = nodemailer.createTransport({
     pass: "rcplngehzvvifxjx"
   }
 });
+
+// Загрузка HTML-шаблона
+const loadEmailTemplate = (templateName, replacements) => {
+  const filePath = path.join(__dirname, templateName);
+  let template = fs.readFileSync(filePath, 'utf8');
+
+  for (const key in replacements) {
+    template = template.replace(new RegExp(`{{${key}}}`, 'g'), replacements[key]);
+  }
+
+  return template;
+};
 
 // Получение списка продуктов из Firestore
 const getProductsFromFirestore = async () => {
@@ -153,9 +167,9 @@ bot.onText(/\/search/, async (msg) => {
       bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
     } else {
       const productInfo = foundProducts.map(product => {
-        return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
-      }).join('\n\n');
-      await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
+        return `Название: ${product.tittle}\nОписание: ${product.description}\нЦена: ${product.price}`;
+      }).join('\н\n');
+      await bot.sendMessage(chatId, `Найденные товары:\н${productInfo}`);
       await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
         reply_markup: {
           inline_keyboard: [
@@ -184,10 +198,10 @@ bot.onText(/\/infoorder/, async (msg) => {
   try {
     const order = await getOrderFromFirestore(orderId);
     const productsInfo = order.products.map((product, index) => {
-      return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
-    }).join('\n\n');
-    const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
-    await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+      return `Товар ${index + 1}:\нНазвание: ${product.title}\нОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
+    }).join('\н\n');
+    const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+    await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
   } catch (error) {
     console.error('Error getting order info:', error);
     bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
@@ -205,9 +219,9 @@ bot.onText(/\/myorders/, async (msg) => {
       bot.sendMessage(chatId, 'У вас нет заказов.');
     } else {
       const ordersInfo = orders.map(order => {
-        return `ID заказа: ${order.id}\nДата заказа: ${formatDate(order.createdAt)}`;
-      }).join('\n\n');
-      await bot.sendMessage(chatId, `Ваши заказы:\n\n${ordersInfo}`);
+        return `ID заказа: ${order.id}\нДата заказа: ${formatDate(order.createdAt)}`;
+      }).join('\н\n');
+      await bot.sendMessage(chatId, `Ваши заказы:\н\n${ordersInfo}`);
     }
   } catch (error) {
     console.error('Error getting user orders:', error);
@@ -224,12 +238,16 @@ bot.on('message', async (msg) => {
       const data = JSON.parse(msg.web_app_data.data);
       const { country, city, street, postalCode, email, text } = data;
 
+      // Подготовка данных для замены в шаблоне
+      const replacements = { country, city, street, postalCode, email };
+      const htmlContent = loadEmailTemplate('emailTemplate.html', replacements);
+
       // Отправка подтверждения по электронной почте
       const mailOptions = {
-        from: 'vkrbot@yandex.ru', 
+        from: 'vkrbot@yandex.ru',
         to: email,
         subject: 'Подтверждение заказа',
-        text: `Вы заполнили форму для отправки заказа. Данные для доставки:\nСтрана: ${country}\nГород: ${city}\nУлица: ${street}\nПочтовый индекс: ${postalCode}\nЭлектронная почта: ${email}`
+        html: htmlContent, // Использование HTML-содержимого
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
@@ -271,9 +289,9 @@ bot.on('message', async (msg) => {
           bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
         } else {
           const productInfo = foundProducts.map(product => {
-            return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
-          }).join('\n\n');
-          await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
+            return `Название: ${product.tittle}\нОписание: ${product.description}\нЦена: ${product.price}`;
+          }).join('\н\n');
+          await bot.sendMessage(chatId, `Найденные товары:\н${productInfo}`);
           await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
             reply_markup: {
               inline_keyboard: [
@@ -294,17 +312,17 @@ bot.on('message', async (msg) => {
         console.log(`Fetching order with ID: ${orderId}`);
         const order = await getOrderFromFirestore(orderId);
         const productsInfo = order.products.map((product, index) => {
-          return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
-        }).join('\n\n');
-        const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
-        await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+          return `Товар ${index + 1}:\нНазвание: ${product.title}\нОписание: ${product.description}\нЦена: ${product.price}\нКоличество: ${product.quantity}`;
+        }).join('\н\n');
+        const orderInfo = `ID заказа: ${orderId}\нТовары:\н${productsInfo}\нОбщая стоимость: ${order.totalPrice}`;
+        await bot.sendMessage(chatId, `Информация по заказу:\н${orderInfo}`);
       } catch (error) {
         console.error('Error getting order info:', error);
         bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
       }
     } else if (!text.startsWith('/')) {
       // Если сообщение не является командой и не является данными веб-приложения, отправляем список команд
-      bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\n' +
+      bot.sendMessage(chatId, 'Пожалуйста, используйте одну из следующих команд:\н' +
         '/start - Начать взаимодействие\n' +
         '/search "название товара" - Поиск товара\n' +
         '/infoorder "ID заказа" - Информация по заказу\n' +
