@@ -352,14 +352,7 @@ app.post('/web-data', async (req, res) => {
       type: 'article',
       id: queryId,
       title: 'Успешная покупка',
-      input_message_content: {
-        message_text: `Вы оформили заказ. ID заказа: ${orderId}`,
-        reply_markup: JSON.stringify({
-          inline_keyboard: [
-            [{ text: 'Заполнить форму для отправки заказа', web_app: { url: webAppUrl + '/form' } }]
-          ]
-        })
-      }
+      input_message_content: { message_text: `Вы оформили заказ. ID заказа: ${orderId}` }
     });
 
     // Возвращаем успешный ответ
