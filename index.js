@@ -291,6 +291,18 @@ bot.onText(/\/myorders/, async (msg) => {
   }
 });
 
+// Обработчик команды /admin
+bot.onText(/\/admin/, async (msg) => {
+  const chatId = msg.chat.id;
+  await bot.sendMessage(chatId, 'Нажмите на кнопку ниже, чтобы перейти к странице входа для администратора', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Вход для администратора', web_app: { url: webAppUrl + '/admin-login' } }]
+      ]
+    }
+  });
+});
+
 // Обработчик формы и всех остальных сообщений
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
@@ -388,7 +400,8 @@ bot.on('message', async (msg) => {
         '/start - Начать взаимодействие\n' +
         '/search "название товара" - Поиск товара\n' +
         '/infoorder "ID заказа" - Информация по заказу\n' +
-        '/myorders - Просмотр ваших заказов');
+        '/myorders - Просмотр ваших заказов\n' +
+        '/admin - Вход для администратора');
     }
   }
 });
