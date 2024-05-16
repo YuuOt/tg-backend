@@ -325,7 +325,18 @@ bot.on('message', async (msg) => {
       const data = JSON.parse(msg.web_app_data.data);
       const { country, city, street, postalCode, email, text } = data;
 
-      const clientData = { country, city, street, postalCode, email, createdAt: new Date().toISOString() };
+      const clientData = {
+        country,
+        city,
+        street,
+        postalCode,
+        email,
+        userId: msg.from.id, // Сохраняем ID пользователя
+        firstName: msg.from.first_name,
+        lastName: msg.from.last_name,
+        username: msg.from.username,
+        createdAt: new Date().toISOString()
+      };
 
       // Подготовка данных для замены в шаблоне
       const replacements = { country, city, street, postalCode, email };
