@@ -10,7 +10,7 @@ const jwt = require('jsonwebtoken');
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
 const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
 const serviceAccount = require('./serviceAccountKey.json');
-const secretKey = 'your_secret_key';  // Секретный ключ для JWT
+const secretKey = '3f5e8c3f5bdf4e3f9a3e5b6c2d4e7a8b5f7e9c3a6b4e5f2d7a6e8b5f7e6a3c8b';  // Секретный ключ для JWT
 
 const bot = new TelegramBot(token, { polling: true });
 const app = express();
