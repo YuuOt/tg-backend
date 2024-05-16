@@ -179,6 +179,19 @@ app.get('/api/orders', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/clients', authenticateToken, async (req, res) => {
+  try {
+    const snapshot = await db.collection('clients').get();
+    const clients = [];
+    snapshot.forEach(doc => {
+      clients.push({ id: doc.id, ...doc.data() });
+    });
+    res.json(clients);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get clients' });
+  }
+});
+
 const chatState = {}; // Объект для хранения состояний чатов
 
 // Обработчик команды /start
@@ -312,6 +325,8 @@ bot.on('message', async (msg) => {
       const data = JSON.parse(msg.web_app_data.data);
       const { country, city, street, postalCode, email, text } = data;
 
+      const clientData = { country, city, street, postalCode, email, createdAt: new Date().toISOString() };
+
       // Подготовка данных для замены в шаблоне
       const replacements = { country, city, street, postalCode, email };
       const htmlContent = loadEmailTemplate('emailTemplate.html', replacements);
@@ -333,6 +348,10 @@ bot.on('message', async (msg) => {
           bot.sendMessage(chatId, 'Спасибо за заполнение формы! Подтверждение отправлено на вашу электронную почту.');
         }
       });
+
+      // Сохранение данных клиента в Firestore
+      const clientRef = await db.collection('clients').add(clientData);
+      console.log('Client data saved with ID:', clientRef.id);
 
       await bot.sendMessage(chatId, text);
     } catch (e) {
