@@ -5,12 +5,10 @@ const admin = require('firebase-admin');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const path = require('path');
-const jwt = require('jsonwebtoken');
 
 const token = '7062349272:AAFCsGbapXvuuokak8JXaK8K9qzucUKEPPQ';
 const webAppUrl = 'https://quiet-wisp-11b4c9.netlify.app';
 const serviceAccount = require('./serviceAccountKey.json');
-const secretKey = 'your_secret_key';  // Секретный ключ для JWT
 
 const bot = new TelegramBot(token, { polling: true });
 const app = express();
@@ -23,10 +21,10 @@ const db = admin.firestore();
 
 const transporter = nodemailer.createTransport({
   pool: true,
-  host: "smtp.yandex.ru",
-  port: 465,
+  host: "smtp.yandex.ru", 
+  port: 465, 
   auth: {
-    user: "vkrbot@yandex.ru",
+    user: "vkrbot@yandex.ru", 
     pass: "rcplngehzvvifxjx"
   }
 });
@@ -102,21 +100,6 @@ const getUserOrdersFromFirestore = async (userId) => {
   }
 };
 
-// Получение всех заказов из Firestore
-const getAllOrdersFromFirestore = async () => {
-  try {
-    const snapshot = await db.collection('orders').get();
-    const orders = [];
-    snapshot.forEach(doc => {
-      orders.push({ id: doc.id, ...doc.data() });
-    });
-    return orders;
-  } catch (error) {
-    console.error('Error getting all orders from Firestore:', error);
-    throw error;
-  }
-};
-
 // Форматирование даты и времени
 const formatDate = (date) => {
   const dateObj = new Date(date);
@@ -133,43 +116,6 @@ const formatDate = (date) => {
 
 app.use(express.json());
 app.use(cors());
-
-const employees = [{ username: 'admin', password: 'admin123' }];
-
-// Аутентификация сотрудника
-app.post('/api/login', (req, res) => {
-  const { username, password } = req.body;
-  const employee = employees.find(emp => emp.username === username && emp.password === password);
-
-  if (employee) {
-    const token = jwt.sign({ username: employee.username }, secretKey, { expiresIn: '1h' });
-    res.json({ token });
-  } else {
-    res.status(401).json({ message: 'Invalid credentials' });
-  }
-});
-
-// Middleware для проверки JWT
-function authenticateToken(req, res, next) {
-  const token = req.headers['authorization'];
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, secretKey, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
-// Получение списка заказов (доступно только авторизованным пользователям)
-app.get('/api/orders', authenticateToken, async (req, res) => {
-  try {
-    const orders = await getAllOrdersFromFirestore();
-    res.json(orders);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get orders' });
-  }
-});
 
 const chatState = {}; // Объект для хранения состояний чатов
 
