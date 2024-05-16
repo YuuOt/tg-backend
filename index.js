@@ -320,6 +320,8 @@ bot.onText(/\/admin/, async (msg) => {
 bot.on('message', async (msg) => {
   const chatId = msg.chat.id;
 
+  console.log(msg)
+
   if (msg?.web_app_data?.data) {
     try {
       const data = JSON.parse(msg.web_app_data.data);
@@ -332,9 +334,9 @@ bot.on('message', async (msg) => {
         postalCode,
         email,
         userId: msg.from.id, // Сохраняем ID пользователя
-        firstName: msg.from.first_name,
-        lastName: msg.from.last_name,
-        username: msg.from.username,
+       // firstName: msg.from.first_name,
+        //lastName: msg.from.last_name,
+       // username: msg.from.username,
         createdAt: new Date().toISOString()
       };
 
