@@ -242,7 +242,7 @@ bot.onText(/\/search/, async (msg) => {
       bot.sendMessage(chatId, 'По вашему запросу ничего не найдено.');
     } else {
       const productInfo = foundProducts.map(product => {
-        return `Название: ${product.tittle}\nОписание: ${product.description}\nЦена: ${product.price}`;
+        return `Название: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}`;
       }).join('\n\n');
       await bot.sendMessage(chatId, `Найденные товары:\n${productInfo}`);
       await bot.sendMessage(chatId, 'Заказать найденный товар можно по кнопке ниже', {
