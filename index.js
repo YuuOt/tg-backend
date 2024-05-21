@@ -477,6 +477,42 @@ app.post('/web-data', async (req, res) => {
     res.status(500).json({ error: 'Failed to process order' });
   }
 });
+// Добавление нового товара
+app.post('/api/products', authenticateToken, async (req, res) => {
+  const { title, description, price, image, category } = req.body;
+
+  if (!title || !description || !price || !image || !category) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  const newProduct = {
+    title,
+    description,
+    price,
+    image,
+    category,
+    createdAt: new Date().toISOString()
+  };
+
+  try {
+    const productRef = await db.collection('products').add(newProduct);
+    res.status(201).json({ id: productRef.id, ...newProduct });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to add product' });
+  }
+});
+
+// Удаление товара
+app.delete('/api/products/:id', authenticateToken, async (req, res) => {
+  const productId = req.params.id;
+
+  try {
+    await db.collection('products').doc(productId).delete();
+    res.status(204).send();
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete product' });
+  }
+});
 
 app.get('/productlist', async (req, res) => {
   try {
