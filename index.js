@@ -197,7 +197,6 @@ const chatState = {}; // Объект для хранения состояний
 // Обработчик команды /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  await bot.sendSticker(chatId, 'CAACAgQAAxkBAAEDnHtgPSFb0AOWv9Yhkn6W7I6MPy1wzAACBQADqVt4GwABakIbPfrvLQQ'); // Новый ID стикера
   await bot.sendMessage(chatId, '👋 Добро пожаловать в наш интернет-магазин!', {
     reply_markup: {
       keyboard: [
@@ -436,6 +435,25 @@ bot.on('message', async (msg) => {
 });
 
 // Обработчик маршрута /web-data для получения данных из веб-приложения и сохранения заказа
+const sendOrderConfirmation = async (chatId, orderId, products, totalPrice) => {
+  const productsInfo = products.map((product, index) => {
+    return `🔹 *${product.title}*\n  ${product.description}\n  Цена: ${product.price} руб.\n  Количество: ${product.quantity}`;
+  }).join('\n\n');
+  
+  const orderInfo = `🛒 *ID заказа*: ${orderId}\n\n${productsInfo}\n\n💰 *Общая стоимость*: ${totalPrice} руб.`;
+
+  await bot.sendMessage(chatId, `Вы оформили заказ:\n\n${orderInfo}`, {
+    parse_mode: 'Markdown',
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Заполнить форму для доставки', web_app: { url: webAppUrl + '/form' } }],
+        [{ text: 'Вернуться к магазинам', web_app: { url: webAppUrl } }]
+      ]
+    }
+  });
+};
+
+// Handler for the /web-data endpoint
 app.post('/web-data', async (req, res) => {
   const { queryId, products, totalPrice, tg } = req.body;
 
@@ -446,30 +464,24 @@ app.post('/web-data', async (req, res) => {
       products,
       totalPrice,
       tg,
-      userId: userId, // Привязываем заказ к пользователю Telegram
+      userId: userId,
       createdAt: new Date().toISOString()
     };
     const orderId = await saveOrderToFirestore(order);
 
-    const productsInfo = products.map((product, index) => {
-      return `🔹 *${product.title}*\n  ${product.description}\n  Цена: ${product.price} руб.\n  Количество: ${product.quantity}`;
-    }).join('\n\n');
-    const orderInfo = `🛒 *ID заказа*: ${orderId}\n\n${productsInfo}\n\n💰 *Общая стоимость*: ${totalPrice} руб.`;
-
-    // Отправка ответа в Telegram
     await bot.answerWebAppQuery(queryId, {
       type: 'article',
       id: queryId,
       title: 'Успешная покупка',
-      input_message_content: { message_text: `Вы оформили заказ:\n\n${orderInfo}`, parse_mode: 'Markdown' }
+      input_message_content: { message_text: `Вы оформили заказ. ID заказа: ${orderId}` }
     });
 
-    // Возвращаем успешный ответ
+    await sendOrderConfirmation(userId, orderId, products, totalPrice);
+
     res.status(200).json({ orderId });
   } catch (error) {
     console.error('Error processing order:', error);
 
-    // Отправка ошибки в Telegram
     await bot.answerWebAppQuery(queryId, {
       type: 'article',
       id: queryId,
@@ -477,7 +489,6 @@ app.post('/web-data', async (req, res) => {
       input_message_content: { message_text: 'Не удалось приобрести товар' }
     });
 
-    // Возвращаем ошибку
     res.status(500).json({ error: 'Failed to process order' });
   }
 });
