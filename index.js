@@ -197,17 +197,16 @@ const chatState = {}; // Объект для хранения состояний
 // Обработчик команды /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  await bot.sendMessage(chatId, 'Ниже появится кнопка, чтобы заполнить форму для отправки заказа ', {
+  await bot.sendSticker(chatId, 'CAACAgIAAxkBAAEDn39hK1Xt30JvTAFqFQABjWjWZcWcAAH_AAJ6w_MakOb5HzIquFQfBA'); // Пример ID стикера, замените на нужный вам
+  await bot.sendMessage(chatId, '👋 Добро пожаловать в наш интернет-магазин!', {
     reply_markup: {
       keyboard: [
         [{ text: 'Заполнить форму для отправки заказа', web_app: { url: webAppUrl + '/form' } }]
       ]
     }
   });
-  await bot.sendMessage(chatId, 'Команда для поиска товара: /search "название товара"');
-  await bot.sendMessage(chatId, 'Команда для получения информации о заказе: /infoorder "ID заказа"');
-  await bot.sendMessage(chatId, 'Команда для просмотра ваших заказов: /myorders');
-  await bot.sendMessage(chatId, 'Заходите в наш интернет магазин по кнопке ниже', {
+  await bot.sendMessage(chatId, 'Команда для поиска товара: /search "название товара"\nКоманда для получения информации о заказе: /infoorder "ID заказа"\nКоманда для просмотра ваших заказов: /myorders');
+  await bot.sendMessage(chatId, 'Заходите в наш интернет-магазин по кнопке ниже', {
     reply_markup: {
       inline_keyboard: [
         [{ text: 'Сделать заказ', web_app: { url: webAppUrl } }]
@@ -265,7 +264,7 @@ bot.onText(/\/infoorder/, async (msg) => {
   const orderId = msg.text.split(' ')[1];
 
   if (!orderId) {
-    bot.sendMessage(chatId, 'Пожалуйста, укажите ID заказа.');
+    bot.sendMessage(chatId, '❗ Пожалуйста, укажите ID заказа.');
     chatState[chatId] = 'waiting_for_order_id';
     return;
   }
@@ -273,10 +272,10 @@ bot.onText(/\/infoorder/, async (msg) => {
   try {
     const order = await getOrderFromFirestore(orderId);
     const productsInfo = order.products.map((product, index) => {
-      return `Товар ${index + 1}:\nНазвание: ${product.title}\nОписание: ${product.description}\nЦена: ${product.price}\nКоличество: ${product.quantity}`;
+      return `🔹 *${product.title}*\n  ${product.description}\n  Цена: ${product.price} руб.\n  Количество: ${product.quantity}`;
     }).join('\n\n');
-    const orderInfo = `ID заказа: ${orderId}\nТовары:\n${productsInfo}\nОбщая стоимость: ${order.totalPrice}`;
-    await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`);
+    const orderInfo = `🛒 *ID заказа*: ${orderId}\n\n${productsInfo}\n\n💰 *Общая стоимость*: ${order.totalPrice} руб.`;
+    await bot.sendMessage(chatId, `Информация по заказу:\n${orderInfo}`, { parse_mode: 'Markdown' });
   } catch (error) {
     console.error('Error getting order info:', error);
     bot.sendMessage(chatId, 'Произошла ошибка при получении информации по заказу.');
@@ -294,9 +293,9 @@ bot.onText(/\/myorders/, async (msg) => {
       bot.sendMessage(chatId, 'У вас нет заказов.');
     } else {
       const ordersInfo = orders.map(order => {
-        return `ID заказа: ${order.id}\nДата заказа: ${formatDate(order.createdAt)}`;
+        return `🛒 *ID заказа*: ${order.id}\n📅 *Дата заказа*: ${formatDate(order.createdAt)}`;
       }).join('\n\n');
-      await bot.sendMessage(chatId, `Ваши заказы:\n\n${ordersInfo}`);
+      await bot.sendMessage(chatId, `Ваши заказы:\n\n${ordersInfo}`, { parse_mode: 'Markdown' });
     }
   } catch (error) {
     console.error('Error getting user orders:', error);
@@ -452,12 +451,17 @@ app.post('/web-data', async (req, res) => {
     };
     const orderId = await saveOrderToFirestore(order);
 
+    const productsInfo = products.map((product, index) => {
+      return `🔹 *${product.title}*\n  ${product.description}\n  Цена: ${product.price} руб.\n  Количество: ${product.quantity}`;
+    }).join('\n\n');
+    const orderInfo = `🛒 *ID заказа*: ${orderId}\n\n${productsInfo}\n\n💰 *Общая стоимость*: ${totalPrice} руб.`;
+
     // Отправка ответа в Telegram
     await bot.answerWebAppQuery(queryId, {
       type: 'article',
       id: queryId,
       title: 'Успешная покупка',
-      input_message_content: { message_text: `Вы оформили заказ. ID заказа: ${orderId}` }
+      input_message_content: { message_text: `Вы оформили заказ:\n\n${orderInfo}`, parse_mode: 'Markdown' }
     });
 
     // Возвращаем успешный ответ
