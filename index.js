@@ -469,12 +469,12 @@ app.post('/web-data', async (req, res) => {
     };
     const orderId = await saveOrderToFirestore(order);
 
-    /*await bot.answerWebAppQuery(queryId, {
+    await bot.answerWebAppQuery(queryId, {
       type: 'article',
       id: queryId,
       title: 'Успешная покупка',
       input_message_content: { message_text: `Вы оформили заказ. ID заказа: ${orderId}` }
-    });*/
+    });
 
     await sendOrderConfirmation(userId, orderId, products, totalPrice);
 
