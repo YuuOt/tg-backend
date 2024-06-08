@@ -197,7 +197,7 @@ const chatState = {}; // Объект для хранения состояний
 // Обработчик команды /start
 bot.onText(/\/start/, async (msg) => {
   const chatId = msg.chat.id;
-  await bot.sendSticker(chatId, 'CAACAgQAAxkBAAEBVgVke5JfN4N8pXpe4VhClOvXJoR8ZgACFwADbwLID-Kck8Et6oEjLgQ'); // Новый ID стикера
+  await bot.sendSticker(chatId, 'CAACAgQAAxkBAAEDnHtgPSFb0AOWv9Yhkn6W7I6MPy1wzAACBQADqVt4GwABakIbPfrvLQQ'); // Новый ID стикера
   await bot.sendMessage(chatId, '👋 Добро пожаловать в наш интернет-магазин!', {
     reply_markup: {
       keyboard: [
